@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Expense Tracker{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 1.5rem; color: var(--text-main);">Dashboard</h2>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <div class="card-title">Current Balance</div>
+        <div class="card-value">${{ "%.2f"|format(balance) }}</div>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">Total Expenses</div>
+        <div class="card-value text-danger">${{ "%.2f"|format(total_expenses) }}</div>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">Total Deposits</div>
+        <div class="card-value text-success">${{ "%.2f"|format(total_deposits) }}</div>
+    </div>
+</div>
+
+<div class="actions-grid">
+    <a href="{{ url_for('add_expense') }}" class="card" style="text-decoration: none; display: flex; align-items: center; justify-content: center; text-align: center; background-color: var(--primary); color: white; border: none; transition: transform 0.2s;">
+        <div>
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">+ Add Expense</h3>
+            <p style="opacity: 0.8; font-size: 0.875rem;">Record a new purchase</p>
+        </div>
+    </a>
+    
+    <a href="{{ url_for('add_balance') }}" class="card" style="text-decoration: none; display: flex; align-items: center; justify-content: center; text-align: center; transition: transform 0.2s;">
+        <div>
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--text-main);">+ Add Balance</h3>
+            <p style="color: var(--text-muted); font-size: 0.875rem;">Deposit money to your account</p>
+        </div>
+    </a>
+</div>
+{% endblock %}

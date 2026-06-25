@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Expense Tracker{% endblock %}
+
+{% block auth_content %}
+<div class="card auth-card">
+    <div class="auth-header">
+        <h1 class="auth-title">Create an account</h1>
+        <p class="auth-subtitle">Start tracking your expenses today.</p>
+    </div>
+    
+    <form method="POST" action="{{ url_for('signup') }}">
+        <div class="form-group">
+            <label class="form-label" for="name">Name</label>
+            <input type="text" id="name" name="name" class="form-control" required autofocus placeholder="Enter your full name">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="balance">Initial Balance</label>
+            <input type="number" step="0.01" id="balance" name="balance" class="form-control" required placeholder="0.00">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 1.5rem;">
+        <span style="color: var(--text-muted); font-size: 0.875rem;">Already have an account?</span>
+        <a href="{{ url_for('login') }}" style="color: var(--primary); font-weight: 500; text-decoration: none; font-size: 0.875rem;">Log in</a>
+    </div>
+</div>
+{% endblock %}

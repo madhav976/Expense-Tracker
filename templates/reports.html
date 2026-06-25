@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Expense Tracker{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 1.5rem; color: var(--text-main);">Reports & Analytics</h2>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+    <!-- Category Breakdown -->
+    <div class="card">
+        <h3 class="card-title" style="margin-bottom: 1.5rem;">Expenses by Category</h3>
+        
+        {% if category_summary %}
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for cat in category_summary %}
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span style="font-weight: 500;">{{ cat.category }}</span>
+                        <span style="font-weight: 600;">${{ "%.2f"|format(cat.total) }}</span>
+                    </div>
+                    <!-- A simple visual bar based on relative amount could be added here if we passed max total -->
+                    <div style="width: 100%; height: 8px; background-color: var(--bg-light); border-radius: 4px; overflow: hidden;">
+                        <div style="height: 100%; background-color: var(--primary); width: 100%; border-radius: 4px; opacity: 0.8;"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted); text-align: center; padding: 2rem 0;">No expense data available yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Monthly Summary -->
+    <div class="card">
+        <h3 class="card-title" style="margin-bottom: 1.5rem;">Monthly Expenses</h3>
+        
+        {% if monthly_summary %}
+            <div class="table-container">
+                <table class="table" style="margin: 0;">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th style="text-align: right;">Total Spent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for month in monthly_summary %}
+                        <tr>
+                            <td style="font-weight: 500;">{{ month.month }}</td>
+                            <td style="text-align: right; font-weight: 600;">${{ "%.2f"|format(month.total) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted); text-align: center; padding: 2rem 0;">No monthly data available yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

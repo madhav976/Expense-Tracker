@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Add Balance - Expense Tracker{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 1.5rem; color: var(--text-main);">Add Balance</h2>
+
+<div class="card" style="max-width: 600px;">
+    <form method="POST" action="{{ url_for('add_balance') }}">
+        <div class="form-group">
+            <label class="form-label" for="amount">Deposit Amount ($)</label>
+            <input type="number" step="0.01" id="amount" name="amount" class="form-control" required placeholder="0.00">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="deposit_date">Date</label>
+            <input type="date" id="deposit_date" name="deposit_date" class="form-control" required>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">Add Balance</button>
+            <a href="{{ url_for('dashboard') }}" class="btn" style="background-color: var(--bg-light); color: var(--text-main); border: 1px solid var(--border-color);">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

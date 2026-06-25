@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions - Expense Tracker{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 style="color: var(--text-main);">Transaction History</h2>
+    <a href="{{ url_for('add_expense') }}" class="btn btn-primary">+ New Expense</a>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+    <form method="GET" action="{{ url_for('transactions') }}" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+            <input type="text" name="search" class="form-control" placeholder="Search by item name..." value="{{ request.args.get('search', '') }}">
+        </div>
+        <div style="width: 200px;">
+            <select name="category" class="form-control">
+                <option value="">All Categories</option>
+                <option value="Food" {% if request.args.get('category') == 'Food' %}selected{% endif %}>Food</option>
+                <option value="Transport" {% if request.args.get('category') == 'Transport' %}selected{% endif %}>Transport</option>
+                <option value="Entertainment" {% if request.args.get('category') == 'Entertainment' %}selected{% endif %}>Entertainment</option>
+                <option value="Utilities" {% if request.args.get('category') == 'Utilities' %}selected{% endif %}>Utilities</option>
+                <option value="Deposit" {% if request.args.get('category') == 'Deposit' %}selected{% endif %}>Deposit</option>
+                <option value="Others" {% if request.args.get('category') == 'Others' %}selected{% endif %}>Others</option>
+            </select>
+        </div>
+        <div style="width: 180px;">
+            <input type="date" name="date" class="form-control" value="{{ request.args.get('date', '') }}">
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{{ url_for('transactions') }}" class="btn" style="background-color: var(--bg-light); color: var(--text-main); border: 1px solid var(--border-color); margin-left: 0.5rem;">Clear</a>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="padding: 0;">
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Item</th>
+                    <th>Category</th>
+                    <th style="text-align: right;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if transactions %}
+                    {% for t in transactions %}
+                    <tr>
+                        <td style="color: var(--text-muted);">{{ t.purchase_date }}</td>
+                        <td>
+                            {% if t.transaction_type == 'purchase' %}
+                                <span class="badge badge-purchase">Expense</span>
+                            {% else %}
+                                <span class="badge badge-deposit">Deposit</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 500;">{{ t.item_name }}</td>
+                        <td>{{ t.category }}</td>
+                        <td class="amount-cell {% if t.transaction_type == 'purchase' %}amount-expense{% else %}amount-deposit{% endif %}">
+                            {% if t.transaction_type == 'purchase' %}-{% else %}+{% endif %}${{ "%.2f"|format(t.amount) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            No transactions found.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
