@@ -13,8 +13,7 @@ app = Flask(__name__)
 # Use environment variable for secret key, with a fallback for local dev
 app.secret_key = os.environ.get('SECRET_KEY', 'super_secret_key_for_expense_tracker')
 
-# Initialize DB
-init_db(app)
+# Database tables should be created via migrations or a separate CLI script, not at import time on Vercel.
 
 @app.teardown_appcontext
 def teardown_db(exception):
