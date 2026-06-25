@@ -2,17 +2,19 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from flask import g
+from dotenv import load_dotenv
+
+load_dotenv()
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+def get_connection():
+    """Centralized database connection helper"""
+    return psycopg2.connect(DATABASE_URL)
 
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = psycopg2.connect(
-            host=os.environ.get('DB_HOST'),
-            database=os.environ.get('DB_NAME'),
-            user=os.environ.get('DB_USER'),
-            password=os.environ.get('DB_PASSWORD'),
-            port=os.environ.get('DB_PORT', 5432)
-        )
+        db = g._database = get_connection()
     return db
 
 def init_db(app):
