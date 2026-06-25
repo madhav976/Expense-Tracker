@@ -1,0 +1,24 @@
+{
+  "name": "expense-tracer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madhav976/Expense-Tracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/madhav976/Expense-Tracker/issues"
+  },
+  "homepage": "https://github.com/madhav976/Expense-Tracker#readme",
+  "devDependencies": {
+    "prisma": "^7.8.0"
+  }
+}

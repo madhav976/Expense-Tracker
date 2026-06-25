@@ -1,8 +1,13 @@
 import os
-import sqlite3
+from dotenv import load_dotenv
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash, g
 from database.db import get_db, init_db, close_connection
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 # Use environment variable for secret key, with a fallback for local dev
@@ -29,10 +34,10 @@ def signup():
         created_date = datetime.now().strftime('%Y-%m-%d')
 
         db = get_db()
-        cursor = db.cursor()
+        cursor = db.cursor(cursor_factory=RealDictCursor)
         
         # Check if account already exists
-        cursor.execute("SELECT * FROM accounts WHERE name = ?", (name,))
+        cursor.execute("SELECT * FROM accounts WHERE name = %s", (name,))
         if cursor.fetchone():
             flash("Account with this name already exists.", "danger")
             return redirect(url_for('signup'))
@@ -40,13 +45,13 @@ def signup():
         try:
             cursor.execute("""
                 INSERT INTO accounts (name, balance, created_date)
-                VALUES (?, ?, ?)
+                VALUES (%s, %s, %s)
             """, (name, balance, created_date))
             db.commit()
             
             flash("Account created successfully. Please login.", "success")
             return redirect(url_for('login'))
-        except sqlite3.Error:
+        except psycopg2.Error:
             db.rollback()
             flash("An error occurred while creating your account. Please try again.", "danger")
             return redirect(url_for('signup'))
@@ -59,8 +64,8 @@ def login():
         name = request.form['name']
         
         db = get_db()
-        cursor = db.cursor()
-        cursor.execute("SELECT id, name FROM accounts WHERE name = ?", (name,))
+        cursor = db.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("SELECT id, name FROM accounts WHERE name = %s", (name,))
         account = cursor.fetchone()
         
         if account:
@@ -86,18 +91,18 @@ def dashboard():
         return redirect(url_for('login'))
         
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(cursor_factory=RealDictCursor)
     account_id = session['account_id']
     
-    cursor.execute("SELECT balance FROM accounts WHERE id = ?", (account_id,))
+    cursor.execute("SELECT balance FROM accounts WHERE id = %s", (account_id,))
     account = cursor.fetchone()
     current_balance = account['balance'] if account else 0.0
     
-    cursor.execute("SELECT SUM(amount) as total_expenses FROM transactions WHERE account_id = ? AND transaction_type = 'purchase'", (account_id,))
+    cursor.execute("SELECT SUM(amount) as total_expenses FROM transactions WHERE account_id = %s AND transaction_type = 'purchase'", (account_id,))
     expenses_row = cursor.fetchone()
     total_expenses = expenses_row['total_expenses'] if expenses_row['total_expenses'] else 0.0
     
-    cursor.execute("SELECT SUM(amount) as total_deposits FROM transactions WHERE account_id = ? AND transaction_type = 'deposit'", (account_id,))
+    cursor.execute("SELECT SUM(amount) as total_deposits FROM transactions WHERE account_id = %s AND transaction_type = 'deposit'", (account_id,))
     deposits_row = cursor.fetchone()
     total_deposits = deposits_row['total_deposits'] if deposits_row['total_deposits'] else 0.0
 
@@ -119,23 +124,23 @@ def add_expense():
         account_id = session['account_id']
         
         db = get_db()
-        cursor = db.cursor()
+        cursor = db.cursor(cursor_factory=RealDictCursor)
         
-        cursor.execute("SELECT balance FROM accounts WHERE id = ?", (account_id,))
+        cursor.execute("SELECT balance FROM accounts WHERE id = %s", (account_id,))
         current_balance = cursor.fetchone()['balance']
         
         if current_balance >= amount:
             try:
                 new_balance = current_balance - amount
-                cursor.execute("UPDATE accounts SET balance = ? WHERE id = ?", (new_balance, account_id))
+                cursor.execute("UPDATE accounts SET balance = %s WHERE id = %s", (new_balance, account_id))
                 cursor.execute("""
                     INSERT INTO transactions (account_id, transaction_type, item_name, amount, category, purchase_date)
-                    VALUES (?, 'purchase', ?, ?, ?, ?)
+                    VALUES (%s, 'purchase', %s, %s, %s, %s)
                 """, (account_id, item_name, amount, category, purchase_date))
                 db.commit()
                 flash("Expense added successfully!", "success")
                 return redirect(url_for('dashboard'))
-            except sqlite3.Error:
+            except psycopg2.Error:
                 db.rollback()
                 flash("An error occurred while processing your expense. Please try again.", "danger")
         else:
@@ -154,24 +159,24 @@ def add_balance():
         account_id = session['account_id']
         
         db = get_db()
-        cursor = db.cursor()
+        cursor = db.cursor(cursor_factory=RealDictCursor)
         
-        cursor.execute("SELECT balance FROM accounts WHERE id = ?", (account_id,))
+        cursor.execute("SELECT balance FROM accounts WHERE id = %s", (account_id,))
         current_balance = cursor.fetchone()['balance']
         
         try:
             new_balance = current_balance + amount
-            cursor.execute("UPDATE accounts SET balance = ? WHERE id = ?", (new_balance, account_id))
+            cursor.execute("UPDATE accounts SET balance = %s WHERE id = %s", (new_balance, account_id))
             
             cursor.execute("""
                 INSERT INTO transactions (account_id, transaction_type, item_name, amount, category, purchase_date)
-                VALUES (?, 'deposit', 'Balance Deposit', ?, 'Deposit', ?)
+                VALUES (%s, 'deposit', 'Balance Deposit', %s, 'Deposit', %s)
             """, (account_id, amount, deposit_date))
             
             db.commit()
             flash("Balance added successfully!", "success")
             return redirect(url_for('dashboard'))
-        except sqlite3.Error:
+        except psycopg2.Error:
             db.rollback()
             flash("An error occurred while adding balance. Please try again.", "danger")
         
@@ -183,7 +188,7 @@ def transactions():
         return redirect(url_for('login'))
         
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(cursor_factory=RealDictCursor)
     account_id = session['account_id']
     
     # Simple filtering
@@ -191,17 +196,17 @@ def transactions():
     date_filter = request.args.get('date')
     search_query = request.args.get('search')
     
-    query = "SELECT * FROM transactions WHERE account_id = ?"
+    query = "SELECT * FROM transactions WHERE account_id = %s"
     params = [account_id]
     
     if category_filter:
-        query += " AND category = ?"
+        query += " AND category = %s"
         params.append(category_filter)
     if date_filter:
-        query += " AND purchase_date = ?"
+        query += " AND purchase_date = %s"
         params.append(date_filter)
     if search_query:
-        query += " AND item_name LIKE ?"
+        query += " AND item_name LIKE %s"
         params.append(f"%{search_query}%")
         
     query += " ORDER BY purchase_date DESC, id DESC"
@@ -217,24 +222,24 @@ def reports():
         return redirect(url_for('login'))
         
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(cursor_factory=RealDictCursor)
     account_id = session['account_id']
     
     # Category summary for purchases
     cursor.execute("""
         SELECT category, SUM(amount) as total 
         FROM transactions 
-        WHERE account_id = ? AND transaction_type = 'purchase' 
+        WHERE account_id = %s AND transaction_type = 'purchase' 
         GROUP BY category
     """, (account_id,))
     category_summary = cursor.fetchall()
     
     # Monthly summary for purchases
     cursor.execute("""
-        SELECT strftime('%Y-%m', purchase_date) as month, SUM(amount) as total 
+        SELECT TO_CHAR(purchase_date::date, 'YYYY-MM') as month, SUM(amount) as total 
         FROM transactions 
-        WHERE account_id = ? AND transaction_type = 'purchase' 
-        GROUP BY month
+        WHERE account_id = %s AND transaction_type = 'purchase' 
+        GROUP BY TO_CHAR(purchase_date::date, 'YYYY-MM')
         ORDER BY month DESC
     """, (account_id,))
     monthly_summary = cursor.fetchall()
